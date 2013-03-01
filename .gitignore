@@ -1,1 +1,2 @@
-#no files to ignore
+#files to ignore
+__pycache__

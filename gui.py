@@ -507,13 +507,21 @@ class Gui:
     def cut_blink(self):
         '''vizualni blikani editovaneho cutu pri editovani'''
         cut_index = self.edl.sel_cut_index[0]
-        if self.editmode == True:
-            color = self.cutting.itemcget(self.edl_cuts[cut_index], 'fill')
-            if color == 'red':
+        normal_colors = ['#AB0000', '#FFFCDD']  # cut, lcd_l
+        glow_colors = ['red', '#FBC3C5']  # glow color for blink mode
+        if self.editmode == True:  # blink only edit mode
+            cut_item_color = self.cutting.itemcget(self.edl_cuts[cut_index],
+                'fill')  # get actual color for cut
+            lcd_item_color = self.lcd_l['bg']  # get actual color for lcd_l
+            if cut_item_color == normal_colors[0]\
+                and lcd_item_color == normal_colors[1]:
                 self.cutting.itemconfig(self.edl_cuts[cut_index],
-                    fill='#AB0000')
+                    fill=glow_colors[0])
+                self.lcd_l['bg'] = glow_colors[1]
             else:
-                self.cutting.itemconfig(self.edl_cuts[cut_index], fill='red')
+                self.cutting.itemconfig(self.edl_cuts[cut_index],
+                    fill=normal_colors[0])
+                self.lcd_l['bg'] = normal_colors[1]
             self.blinkator = self.gui.after(self.blink_time, self.cut_blink)
 
     def deselect_cut(self, e=''):
