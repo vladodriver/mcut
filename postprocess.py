@@ -10,7 +10,7 @@ from api import Api
 locale.setlocale(locale.LC_ALL, '') # use user's preferred locale
 # take first two characters of country code
 loc = locale.getlocale()
-filename = "locales/{}.mo".format(locale.getlocale()[0][0:2])
+filename = os.path.join('locales','{}.mo'.format(locale.getlocale()[0][0:2]))
 
 try:
     print( "Opening message file {} for locale {}".format(filename, loc[0]))

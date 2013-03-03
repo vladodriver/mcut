@@ -1,0 +1,3 @@
+#files to ignore
+__pycache_/*
+TODO.txt

@@ -113,9 +113,9 @@ class Gui:
 
         # ikony pro buttony
         self.icon = []  # zásobník na ikony
-        for name in ['open.png', 'import.png', 'back_cut.png', 'back.png',
-            'play.png', 'forw.png', 'forw_cut.png', 'framestep.png',
-            'save.png']:
+        for name in ['open.gif', 'import.gif', 'back_cut.gif', 'back.gif',
+            'play.gif', 'forw.gif', 'forw_cut.gif', 'framestep.gif',
+            'save.gif']:
             self.icon.append(PhotoImage(file="icons/" + name))
 
         # tlacitka [<text>, <funkce>, <kl.zkratka>, <text nápovědy(tooltip)>]
@@ -182,7 +182,7 @@ class Gui:
                 _(' you want to save them?'))
             if save:
                 self.save_edl()
-        if self.api.duration:
+        if self.api.player:
             self.api.close()
         self.gui.destroy()
         print('the END :)')  # grafika už je mrtvá

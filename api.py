@@ -30,7 +30,7 @@ class Api:
         if sys.platform == 'linux' or sys.platform == 'darwin':
             self.mplayer_exec = 'mplayer'
         elif sys.platform == 'win32':
-            self.mplayer_exec = 'mplayer.exe'
+            self.mplayer_exec = 'mplayer2.exe'
             
         self.mplayer = [self.mplayer_exec, '-quiet', '-slave', '-idle', '-wid']
         self.mp_info_cmd = ['mplayer', '-identify', '-frames', '0',
@@ -71,7 +71,8 @@ class Api:
         '''Zjisti duration pomoci mplayer --info, jinak nelze korektne
         pretacet'''
         self.mp_info_cmd.append(filename)
-        mp_info = subprocess.Popen(self.mp_info_cmd, stdout=subprocess.PIPE)
+        mp_info = subprocess.Popen(self.mp_info_cmd, stdout=subprocess.PIPE,
+            bufsize=1)
         info = mp_info.communicate()[0].decode().split('\n')
         duration = ''
         for line in info:
