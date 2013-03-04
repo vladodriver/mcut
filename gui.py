@@ -42,7 +42,7 @@ class Gui:
         self.play_before_cut = 2  # počet sekund ukázky přehrání přesk. reklamy
         self.blink_time = 200  # interval blikání editovaného cutu v ms
         self.cutting = Canvas(self.gui, width=800, height=22, bg='#D9D9D9',
-            cursor='hand1')
+            cursor='hand1', insertwidth=0)
         self.cutting.grid(row=1, column=0, columnspan=9, sticky='we')
         self.cutting.bind('<Button-1>', self.edit_cut_changer)  # přepinani
         self.gui.bind('<Shift_R>', self.edit_cut_changer)  # přepinani shiftem
@@ -53,8 +53,8 @@ class Gui:
         self.edl_cuts = []  # analogie k self.edl.edl pro ID cisla střihu obd.
         self.editmode = False  # stav edit mod ano ne při vybrani cutu
         # plátno progress baru
-        self.pbar = Canvas(self.gui, width=800, height=14, bg='#D9D9D9',
-            cursor='xterm')
+        self.pbar = Canvas(self.gui, width=800, height=16, bg='#D9D9D9',
+            cursor='xterm', insertwidth=0)
         self.pbar.grid(row=2, column=0, columnspan=9, sticky='we')
         for event in ['<Configure>', '<Button-1>', '<ButtonRelease-1>',
             '<B1-Motion>', '<Button-3>', '<ButtonRelease-3>', '<B3-Motion>']:
@@ -216,8 +216,8 @@ class Gui:
                 self.edl.sel_cut_index = [None, None]  # reset selected cut
                 self.lcd_l['text'] = _('Cut unselected')  # reset cut lcd
                 # vytvoření prvku progressbar pozice videa
-                self.progress = self.pbar.create_rectangle(0, 0, 0, 10,
-                    fill='blue')
+                self.progress = self.pbar.create_rectangle(0, 0, 0, 17,
+                    fill='blue', outline='', width=0)
                 self.actual_position()  # sledovani pozice kazdou vterinu
                 # jméno a délka videa titulek a info
                 self.gui.title(os.path.split(self.api.videofilename)[1] +
@@ -553,11 +553,12 @@ class Gui:
             index_cut = edl_list.index(cut)  # index strihu v self.edl.edl
             if method == 'redraw':  # kompletni překresleni střihu odznova
                 self.edl_cuts.append(self.cutting.create_rectangle(
-                    cutx_start, 0, cutx_end, 22, fill='#AB0000'))
+                    cutx_start, 0, cutx_end, 23, fill='#AB0000',
+                    outline='', width=0))
             # jen změny velikostí cutu při změně vel. okna
             elif method == 'resize':
                 self.cutting.coords(
-                    self.edl_cuts[index_cut], cutx_start, 0, cutx_end, 22)
+                    self.edl_cuts[index_cut], cutx_start, 0, cutx_end, 23)
             self.edl.sorter(edl_list)  # serareni
 
     def gprint(self, message):
@@ -609,7 +610,7 @@ class Gui:
             str(self.api.duration) + ' s'
         if self.api.duration:  # video je otevřeno a délka je známá
             pixels = time / self.spid
-            self.pbar.coords(self.progress, 0, 0, pixels, 16)
+            self.pbar.coords(self.progress, 0, 0, pixels, 17)
 
     def redraw_canvas(self, e=''):
         '''Přepočítat a překreslit prvky v kanvasech a jeho prvky při změně
