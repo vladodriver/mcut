@@ -16,7 +16,6 @@ class Translate:
         self.locales = {
             'cs': ['cze', 'czech']
             }
-            
         self.get_translations()
         
     def unix_to_win(self, locale_str):
@@ -37,14 +36,18 @@ class Translate:
         lang = locale.getlocale()[0]
         if sys.platform == 'linux' or sys.platform == 'darwin':  #lin & mac
             if lang:
+                print(lang)
                 locale_string = '{}.mo'.format(lang[0:2])
             else:
                 locale_string = ''
-                print('DEBUG Your OS return bad locale string') 
         elif sys.platform == 'win32':  # win32
-            locale_string = self.unix_to_win(lang)
+            if lang:
+                locale_string = self.unix_to_win(lang)
+            else:
+                locale_string = ''
         locale_path = os.path.join('locales', locale_string)
         if locale_string and os.path.exists(locale_path):
+            locale_path = os.path.join('locales', locale_string)
             print('DEBUG Translations for ' + str(lang) +
                 ' locale will be loaded')
             trans = gettext.GNUTranslations(open( locale_path, "rb" ))
