@@ -33,7 +33,7 @@ class Api:
             self.mplayer_exec = 'mplayer2.exe'
             
         self.mplayer = [self.mplayer_exec, '-quiet', '-slave', '-idle', '-wid']
-        self.mp_info_cmd = ['mplayer', '-identify', '-frames', '0',
+        self.mp_info_cmd = [self.mplayer_exec, '-identify', '-frames', '0',
         '-vo', 'null', '-ao', 'null']  # mplayer -info cmd
 
     #***LOGIKA****#
