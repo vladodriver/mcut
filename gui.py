@@ -394,7 +394,7 @@ class Gui:
                     self.open_video(filename=self.api.videofilename)
                 self.mouse_soft_pos = False  # reset jemného posuvu
                 if self.editmode == True:
-                    self.edl_cutter(self.api.position)
+                    self.edl_cutter(round(self.api.position, 2))
                 self.lcd_r['text'] = str(self.api.position) + ' s z' +\
                     str(self.api.duration) + ' s'
                 self.gprint(_('Accurate position: ') + str(self.api.position))
@@ -410,7 +410,6 @@ class Gui:
         při tvorbě, nebo editaci nového cutu před vložením do EDL. Funkce
         je volána klikem do zelene pro vytvoření nového cutu a dále se edituje
         posuvem modreho posuvniku'''
-        print('DEBUG POSITION FOR EDIT EDL ' + str(position))
         if type == 'new':
             new_cut = [position, position]  # novy cut na pretoc. pozici
             cut_index = len(self.edl.edl)
@@ -595,7 +594,7 @@ class Gui:
                 self.open_video(filename=self.api.videofilename)
             if self.editmode == True:
                 try:
-                    self.edl_cutter(position)
+                    self.edl_cutter(round(position, 2))
                 except Exception as er:
                     self.gprint(er)
             else:
