@@ -44,7 +44,6 @@ class Gui:
         self.blink_time = 200  # interval blikání editovaného cutu v ms
         self.cutting = Canvas(self.gui, width=800, height=22, bg='#D9D9D9',
             cursor='hand1', highlightthickness=0)
-        print(self.cutting.configure())
         self.cutting.grid(row=1, column=0, columnspan=9, sticky='we')
         self.cutting.bind('<Button-1>', self.edit_cut_changer)  # přepinani
         self.gui.bind('<Shift_R>', self.edit_cut_changer)  # přepinani shiftem
