@@ -56,6 +56,7 @@ class Api:
         # délku videa je třeba zjistit ihned před otevřením
         self.duration = 0  # vynulovat délku
         self.duration = self.get_duration(filename)  # zjistit délku
+        self.position = 0  # reset position var to 0
         self.command('open', params=["'" + filename + "'"])
         self.command('progress', [3])  # OSD level 3
         self.videofilename = filename
