@@ -46,8 +46,8 @@ class Gui:
         self.cutting.grid(row=1, column=0, columnspan=9, sticky='we')
         self.cutting.bind('<Button-1>', self.edit_cut_changer)  # přepinani
         self.gui.bind('<Shift_R>', self.edit_cut_changer)  # přepinani shiftem
-        self.cutting.bind('<Button-3>', self.edl_cutter)  # nový střih
-        self.gui.bind('<Return>', self.edl_cutter)  # novy strih Enterem
+        self.cutting.bind('<Button-3>', self.edl_insert_new)  # nový střih
+        self.gui.bind('<Return>', self.edl_insert_new)  #TODO udelat zvlast fci new_cut pro mysi udalost
         self.gui.bind('<Escape>', self.deselect_cut)  # nulovani vyberu
         self.gui.bind('<Delete>', self.cut_delete)  # vymazani cutu v edit mode
         self.edl_cuts = []  # analogie k self.edl.edl pro ID cisla střihu obd.
@@ -370,39 +370,47 @@ class Gui:
                 self.api.position = time_pos  # update pozice v api
                 self.pos_progress(time_pos)  # update progressbaru a lcd
                 if self.editmode == True:
-                    self.edl_cutter()
+                    self.edl_cutter(round(self.api.position, 2))
                 self.lcd_r['text'] = str(round(time_pos, 2)) + ' s z' +\
                     str(self.api.duration) + ' s'
             elif e.type == '6' and self.mouse_soft_pos == True:  # jemné Myš 3
                 self.pbar.itemconfig(self.progress, fill='orange')
                 click_pix_diff = e.x - self.click_canvas_pos  # myš +/-
-                time_diff = self.spis * (click_pix_diff / 5)
+                time_diff = self.spis * click_pix_diff
                 time_pos = time_diff + self.api.position
                 self.api.seek(time_pos)
                 self.pos_progress(time_pos)  # update progressbaru
                 if self.editmode == True:
-                    self.edl_cutter()
+                    self.edl_cutter(round(time_pos, 2))  # pribl. pozice zaokr.
                 self.lcd_r['text'] = str(round(time_pos, 2)) + ' s z' +\
                     str(self.api.duration) + ' s'
             elif e.type == '5':  # uvolněno tl. myši resety
                 self.pbar.itemconfig(self.progress, fill='blue')  # reset barvy
-                self.api.position = self.api.get_position()  # presna pozice
+                try:
+                    self.api.position = self.api.get_position()  # presna pozice
+                except Exception as er:
+                    self.gprint(er.args[1])
+                    self.open_video(filename=self.api.videofilename)
                 self.mouse_soft_pos = False  # reset jemného posuvu
                 if self.editmode == True:
-                    self.edl_cutter()
+                    self.edl_cutter(self.api.position)
                 self.lcd_r['text'] = str(self.api.position) + ' s z' +\
                     str(self.api.duration) + ' s'
                 self.gprint(_('Accurate position: ') + str(self.api.position))
         else:
             self.gprint(_('First you need to open a video file!'))
+            
+    def edl_insert_new(self, e):
+        position = self.api.position
+        self.edl_cutter(position, type='new')
 
-    def edl_cutter(self, e=''):
+    def edl_cutter(self, position, type='edit'):
         '''Dle hodnoty position při posuvu překresluje i obdelník nového cutu
         při tvorbě, nebo editaci nového cutu před vložením do EDL. Funkce
         je volána klikem do zelene pro vytvoření nového cutu a dále se edituje
         posuvem modreho posuvniku'''
-        position = round(self.api.position, 2)  # pozice zaokr. na 2 mista
-        if e:
+        print('DEBUG POSITION FOR EDIT EDL ' + str(position))
+        if type == 'new':
             new_cut = [position, position]  # novy cut na pretoc. pozici
             cut_index = len(self.edl.edl)
             edit_to = []  # edit_to nezadano
@@ -414,10 +422,10 @@ class Gui:
             new_cut[mark_index] = position  # uprava mark_time vybraneho marku
             edit_to = [cut_index]  # index cutu v EDL jenz se edituje v []
             if new_cut[0] >= new_cut[1]:
-                if mark_index == 1:
-                    self.cut_activate(cut_index, 0)
+                if mark_index == 1:  # prohodi start end pri pretazeni
+                    self.cut_activate(cut_index, 0)  # konce
                 else:
-                    self.cut_activate(cut_index, 1)
+                    self.cut_activate(cut_index, 1)  # nebo zacatku
         try:
             self.edl.edl_build_validate(new_cut, self.edl.edl,
                 self.api.duration, edit_to=edit_to)  # validace
@@ -427,7 +435,7 @@ class Gui:
             self.lcd_l['text'] = _('Editing ') + str(cut_index + 1) +\
                 _('. cut ') + str(self.edl.edl[cut_index])
             # auto označeni do edit modu a vybrani end marku pro posun
-            if e:
+            if type == 'new':
                 cut_index, mark_index = self.edl.find_pos_nearest_mark(
                     position, self.edl.edl, self.api.duration, direction='abs')
                 self.cut_activate(cut_index, 1)  # aktivuj cut a levy mark
@@ -545,7 +553,7 @@ class Gui:
          velikosti okna dle zadaných souřadnic a přidá do self.edl_cuts'''
         if method == 'redraw':
             for cut_rect in self.edl_cuts:  # smazani starych obdelniku
-                    self.cutting.delete(cut_rect)  # v platne strihu
+                self.cutting.delete(cut_rect)  # v platne strihu
             self.edl_cuts = []  # vynulovani seznamu ID cutů v gui
         for cut in edl_list:
             cutx_start, cutx_end = cut[0] / self.spid, \
@@ -579,10 +587,14 @@ class Gui:
                 position = self.api.position + self.shift_actual_value
             self.api.seek(position)
             self.pos_progress(position)
-            self.api.position = self.api.get_position()
+            try:
+                self.api.position = self.api.get_position()
+            except Exception as er:
+                self.gprint(er.args[1])
+                self.open_video(filename=self.api.videofilename)
             if self.editmode == True:
                 try:
-                    self.edl_cutter()
+                    self.edl_cutter(position)
                 except Exception as er:
                     self.gprint(er)
             else:
@@ -606,9 +618,9 @@ class Gui:
         '''Překresluje progressbar videa (velikost obdélníku) v plátně střihu
         na časovou hodnotu v time - absolutně zadanou'''
         self.pbar.update_idletasks()
-        self.lcd_r['text'] = str(round(self.api.position, 2)) + ' s z ' +\
-            str(self.api.duration) + ' s'
         if self.api.duration:  # video je otevřeno a délka je známá
+            self.lcd_r['text'] = str(round(self.api.position, 2)) + ' s z ' +\
+            str(self.api.duration) + ' s'
             pixels = time / self.spid
             self.pbar.coords(self.progress, 0, 0, pixels, 17)
 
@@ -626,13 +638,16 @@ class Gui:
 
     def actual_position(self):
         '''Pravidelné zjišťování pozice každou sekundu'''
-        try:
-            self.api.position = self.api.get_position()
-            self.pos_progress(self.api.position)
-            self.timer = self.gui.after(100, self.actual_position)
-            # pred koncem videa zastav aby neskoncilo
-            if self.api.position > self.api.duration - (
-                self.api.safe_end_time * 2):
-                self.api.seek(self.api.duration)  # skok na konec
-        except Exception as er:
-            self.gprint(er.args[1])
+        paused = self.api.command('is_paused')
+        if paused == 'no':
+            try:
+                self.api.position = self.api.get_position()
+                self.pos_progress(self.api.position)
+                # pred koncem videa zastav aby neskoncilo
+                if self.api.position > self.api.duration - (
+                    self.api.safe_end_time * 2):
+                    self.api.seek(self.api.duration)  # skok na konec
+            except Exception as er:
+                self.gprint(er.args[1])
+                self.open_video(filename=self.api.videofilename)
+        self.timer = self.gui.after(100, self.actual_position)

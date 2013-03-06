@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import os
 import sys
-import os
 
 from gui import Gui
 from translate import Translate

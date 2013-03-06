@@ -33,7 +33,7 @@ class Translate:
         
     def get_translations(self):
         '''get path to mo file for translating messages and initiate it'''
-        lang = locale.getlocale()[0]
+        lang = locale.getdefaultlocale()[0]
         if sys.platform == 'linux' or sys.platform == 'darwin':  #lin & mac
             if lang:
                 print(lang)

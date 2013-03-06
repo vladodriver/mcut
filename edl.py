@@ -87,11 +87,11 @@ class Edl:
                     if cut[0] <= mark and cut[1] >= mark:
                         raise Exception('ValueError',
                             _('Cut point ') + str(mark_time) +
-                            ' is part of the ' + str(edl_list.index(cut)) +
-                            '. cut ' + str(cut) + ' !')
+                            _(' is part of the ') + str(edl_list.index(cut)) +
+                            _('. cut ') + str(cut) + ' !')
                 if new_cut[0] < cut[0] < cut[1] < new_cut[1]:
                     raise Exception('ValueError',
-                        _('New cut would absorb ') +
+                        _('New cut would absorb area of ') +
                         str(edl_list.index(cut) + 1) +
                         _('. cut ') + str(cut) + ' !')
         return True

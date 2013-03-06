@@ -1,5 +1,8 @@
 import subprocess
+import time
 import select
+import threading
+import queue
 import sys
 
 
@@ -12,6 +15,7 @@ class Api:
 
         self.out = []  # buffer pro stdout vystupy
         self.position = 0  # aktuální pozice aktuální v sekundách
+        self.resp_queue = queue.Queue()  # fronta pro ulozeni pars. odpovedi
         self.duration = 0  # velikost otevřeného videosouboru bez střihu
         self.videofilename = ''  # cesta k aktuálně otevřenému souboru videa
         self.safe_end_time = 0.2  # časová rezerva odečte se od délky videa
@@ -23,6 +27,7 @@ class Api:
             'seek': ['pausing seek', False],  # +/- s (0)|+/- % (1)|abs. (2)
             'frame_step': ['frame_step', False],  # o 1 frame vpřed
             'pause': ['pause', False],
+            'is_paused': ['get_property pause', True],  # vraci 1 kdyz paused
             'stop': ['stop', False],
             'progress': ['pausing osd', False],  # 3 nejvyžší level
             }
@@ -44,6 +49,7 @@ class Api:
         self.mplayer.append(wid)
         self.player = subprocess.Popen(self.mplayer, stdin=subprocess.PIPE,
             stdout=subprocess.PIPE)
+        self.stdout_thread()
         return True
 
     def open_video(self, filename):
@@ -53,20 +59,40 @@ class Api:
         self.command('open', params=["'" + filename + "'"])
         self.command('progress', [3])  # OSD level 3
         self.videofilename = filename
+        
+    def stdout_thread(self):
+        '''Spustí funkci ge_stdout v samostatnem threadu s timeoutem kvuli
+        smycce..'''
+        out_thread = threading.Thread(target=self.get_stdout, daemon=True)
+        out_thread.start()
 
-    def get_stdout(self):
-        '''Získá aktuální kousek bufferu a uloží ho do self.out'''
-        output = ''
-        while any(select.select([self.player.stdout.fileno()], [], [], 1)):
+    def get_stdout(self, queue=''):
+        '''Získá aktuální kousek bufferu a uloží do fronty kdyz je tam
+        udaj o pozici'''
+        while not self.player.poll():
             line = self.player.stdout.readline().decode()
             if 'ANS_' in line:
-                output = line.split('=')[1]
-                return output
-
-        if not output:
-            raise Exception('ValueError',
-                _('Getting data from mplayer failed !'))
-
+                output = line.split('=')[1].replace('\n', '')  # strip newline
+                self.resp_queue.put(output)
+            else:
+                print(line)
+                
+    # hlavní získávací funkce
+    def command(self, command, params=[]):
+        '''prijme prikaz pro mplayer typ(get/set, co, parametry)
+        viz http://www.mplayerhq.hu/DOCS/tech/slave.txt'''
+        if command in self.cmdlist:
+            com = self.cmdlist.get(command, '')  # prikaz je v prvnim
+            par = ' '.join(map(str, params))  # spoj parametry
+            # prikaz je v com[0]
+            req = bytes(com[0] + ' ' + par + '\n', 'utf8')
+            self.player.stdin.write(req)  # příkaz
+            if  com[1] == True:  # com[1] výstup je True
+                answ =  self.resp_queue.get(timeout=1)
+                return answ
+            else:
+                return True
+                
     def get_duration(self, filename):
         '''Zjisti duration pomoci mplayer --info, jinak nelze korektne
         pretacet'''
@@ -91,22 +117,6 @@ class Api:
                     _('Unable to identify the video file, it may be') +
                     _(' damaged!'))
 
-    # hlavní získávací funkce
-    def command(self, command, params=[]):
-        '''prijme prikaz pro mplayer typ(get/set, co, parametry)
-        viz http://www.mplayerhq.hu/DOCS/tech/slave.txt'''
-        if command in self.cmdlist:
-            com = self.cmdlist.get(command, '')  # prikaz je v prvnim
-            par = ' '.join(map(str, params))  # spoj parametry
-            # prikaz je v com[0]
-            req = bytes(com[0] + ' ' + par + '\n', 'utf8')
-            self.player.stdin.write(req)  # příkaz
-            if  com[1] == True:  # com[1] výstup je True
-                out = self.get_stdout()
-                return out
-            else:
-                return True
-
     def seek(self, time):
         '''Seekování s rezervou self._end_time tolerance'''
         if time < 0:
@@ -126,7 +136,11 @@ class Api:
     def get_position(self):
         '''Vypíše pozici potvrzenou Mplayerem a když je
         >= délka - self.safe_end_time vrací plný čas self.duration'''
-        pos = float(self.command('position'))
+        try:
+            pos = float(self.command('position'))
+        except:
+            raise Exception('ValueError',
+                _('Position not detected, try reload to video file!'))
         if pos >= self.duration - self.safe_end_time:
             pos = self.duration
         return pos

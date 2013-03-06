@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mcut\n"
-"POT-Creation-Date: 2013-03-01 03:11+0100\n"
-"PO-Revision-Date: 2013-03-01 03:18+0100\n"
+"POT-Creation-Date: 2013-03-06 13:45+0100\n"
+"PO-Revision-Date: 2013-03-06 13:46+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -15,31 +15,31 @@ msgstr ""
 "Plural-Forms: nplurals=3;plural=n==1 ? 0 : n>=2 && n<=4 ? 1 : 2;\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: api.py:68
-msgid "Getting data from mplayer failed !"
-msgstr "Získání dat z mplayeru selhalo !"
-
-#: api.py:80
+#: api.py:107
 msgid "DEBUG : video length is: "
 msgstr "DEBUG : délka videa je: "
 
-#: api.py:86
+#: api.py:113
 msgid "Detected video length 0 s video, it may be"
 msgstr "Zjištěna délka videa 0 s, videosoubor, bude zřejmě"
 
-#: api.py:87 api.py:91
+#: api.py:114 api.py:118
 msgid " damaged!"
 msgstr " poškozen!"
 
-#: api.py:90
+#: api.py:117
 msgid "Unable to identify the video file, it may be"
 msgstr "Nepodařilo se identifikovat videosoubor, bude zřejmě"
 
-#: main.py:32
+#: api.py:143
+msgid "Position not detected, try reload to video file!"
+msgstr "Pozice nebyla zjištěna, zkuste znovu otevřít videosoubor!"
+
+#: main.py:19
 msgid "File path "
 msgstr "Cesta k souboru "
 
-#: main.py:32
+#: main.py:19
 msgid " not found."
 msgstr " nebyla nalezena."
 
@@ -77,15 +77,19 @@ msgstr " neexistuje!"
 
 #: edl.py:89
 msgid "Cut point "
-msgstr "Bod střihu"
+msgstr "Bod střihu "
+
+#: edl.py:90
+msgid " is part of the "
+msgstr " je již část "
+
+#: edl.py:91 edl.py:96 gui.py:436 gui.py:508
+msgid ". cut "
+msgstr ". střihu "
 
 #: edl.py:94
-msgid "New cut would absorb "
-msgstr "Nový střih by pohltil "
-
-#: edl.py:96 gui.py:428 gui.py:500
-msgid ". cut "
-msgstr ". střih "
+msgid "New cut would absorb area of "
+msgstr "Nový střih by pohltil oblast "
 
 #: edl.py:105
 msgid " > inserting new cut"
@@ -275,7 +279,7 @@ msgstr "Import selhal - Chyba: "
 msgid "Selecting an EDL file has been canceled"
 msgstr "Výběr EDL souboru byl stornován"
 
-#: gui.py:304 gui.py:321 gui.py:582
+#: gui.py:304 gui.py:321 gui.py:603
 msgid "You do not have any open video!"
 msgstr "Nemáte otevřené žádné video!"
 
@@ -295,77 +299,80 @@ msgstr "Nejdříve je třeba otevřít video a provést střih"
 msgid "Size of shift: "
 msgstr "Velikost skoku posuvu: "
 
-#: gui.py:395 gui.py:580
+#: gui.py:399 gui.py:601
 msgid "Accurate position: "
 msgstr "Přesná pozice: "
 
-#: gui.py:397
+#: gui.py:401
 msgid "First you need to open a video file!"
 msgstr "Nejdříve je potřeba otevřít videosoubor!"
 
-#: gui.py:427
+#: gui.py:435
 msgid "Editing "
 msgstr "Editace "
 
-#: gui.py:456
+#: gui.py:464
 msgid "Editing cut by position."
 msgstr "Editace střihu podle pozice."
 
-#: gui.py:457
+#: gui.py:465
 msgid " Ends with Esc, deleting Delete LM,"
 msgstr " Ukončení Esc, smazání Delete LM,"
 
-#: gui.py:458
+#: gui.py:466
 msgid "Ctrl + <- -> next cut mark."
 msgstr "Ctrl + <- -> další bod střihu."
 
-#: gui.py:474
+#: gui.py:482
 msgid "Deleting cut!"
 msgstr "Vymazaání střihu!"
 
-#: gui.py:475
+#: gui.py:483
 msgid "Really delete "
 msgstr "Opravdu vymazat "
 
-#: gui.py:476
+#: gui.py:484
 msgid ". cut ?"
 msgstr ". střih ?"
 
-#: gui.py:485
+#: gui.py:493
 msgid " was deleted from the EDL"
 msgstr " byl vymazán z EDL"
 
-#: gui.py:499
+#: gui.py:507
 msgid "Start "
 msgstr "Začátek "
 
-#: gui.py:499
+#: gui.py:507
 msgid "End "
 msgstr "Konec "
 
-#: gui.py:504
+#: gui.py:512
 msgid ". cut selected. "
 msgstr ". střih vybrán. "
 
-#: gui.py:505
+#: gui.py:513
 msgid " Back Esc, next cut mark Ctrl + <- ->, editing R-Shift/LM"
 msgstr " Zpět Esc, další bod střihu Ctrl + <- ->, editace P-Shift/LM"
 
-#: gui.py:526
+#: gui.py:542
 msgid "Not selected cut"
 msgstr "Střih není vybrán"
 
-#: gui.py:532
+#: gui.py:548
 msgid "Selecting cut deactivated"
 msgstr "Výběr střihu deaktivován"
 
-#: gui.py:615
+#: gui.py:636
 msgid "Rewind "
 msgstr "Přetáčení "
 
-#: gui.py:616
+#: gui.py:637
 msgid "soft "
 msgstr "jemné "
+
+#~ msgid "Getting data from mplayer failed !"
+#~ msgstr "Získání dat z mplayeru selhalo !"
 
 #~ msgid ". cut"
 #~ msgstr ". střih"
