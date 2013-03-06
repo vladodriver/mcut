@@ -151,6 +151,7 @@ class Api:
 
     # ukončení aplikace (zavření okna)
     def close(self):
-        self.command('stop')  # zavře soubor v Mplayeru
-        self.player.kill()  # zabije subproces Mplayeru)
+        if not self.player.poll():  # jen kdyz bezi Mplayer subprocess
+            self.command('stop')  # zavře soubor v Mplayeru
+            self.player.kill()  # zabije subproces Mplayeru)
         return True

@@ -232,6 +232,8 @@ class Gui:
             except Exception as er:
                 messagebox.showerror(_('Error while opening video '),
                     er.args[1])
+                self.close()
+                    
         else:
             self.gprint(_('The video file was not selected!'))
 
@@ -393,7 +395,6 @@ class Gui:
                     self.api.position = self.api.get_position()  # presna pozice
                 except Exception as er:
                     self.gprint(er.args[1])
-                    self.open_video(filename=self.api.videofilename)
                 self.mouse_soft_pos = False  # reset jemného posuvu
                 if self.editmode == True:
                     self.edl_cutter(round(self.api.position, 2))
@@ -592,7 +593,6 @@ class Gui:
                 self.api.position = self.api.get_position()
             except Exception as er:
                 self.gprint(er.args[1])
-                self.open_video(filename=self.api.videofilename)
             if self.editmode == True:
                 try:
                     self.edl_cutter(round(position, 2))
@@ -649,5 +649,4 @@ class Gui:
                     self.api.seek(self.api.duration)  # skok na konec
             except Exception as er:
                 self.gprint(er.args[1])
-                self.open_video(filename=self.api.videofilename)
         self.timer = self.gui.after(100, self.actual_position)
