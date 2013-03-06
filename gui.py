@@ -25,8 +25,9 @@ class Gui:
         self.gui.protocol("WM_DELETE_WINDOW", self.close)
         self.gui.bind('<Control-KeyPress-q>', self.close)
         # styl
-        self.style = ttk.Style()
-        self.style.theme_use('clam')
+        if sys.platform == 'linux':
+            self.style = ttk.Style()  # fix ugly appearance
+            self.style.theme_use('clam')
 
         # prvky okna od shora dolů
         # video plátno
