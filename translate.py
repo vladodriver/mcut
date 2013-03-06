@@ -45,7 +45,6 @@ class Translate:
                 locale_string = self.unix_to_win(lang)
             else:
                 locale_string = ''
-        locale_path = os.path.join('locales', locale_string)
         if locale_string and os.path.exists(locale_path):
             locale_path = os.path.join('locales', locale_string)
             print('DEBUG Translations for ' + str(lang) +
