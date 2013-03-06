@@ -285,6 +285,8 @@ class Gui:
 
     def play(self, e=''):
         '''pause/play'''
+        if self.api.paused == True:
+            self.api.paused = False
         if self.api.duration:
             cut_index = self.edl.sel_cut_index[0]
             if cut_index == None:  # normalne play/pause strih neni vybran
@@ -637,8 +639,7 @@ class Gui:
 
     def actual_position(self):
         '''Pravidelné zjišťování pozice každou sekundu'''
-        paused = self.api.command('is_paused')
-        if paused == 'no':
+        if self.api.paused == False:  # neni pause - hraje se
             try:
                 self.api.position = self.api.get_position()
                 self.pos_progress(self.api.position)

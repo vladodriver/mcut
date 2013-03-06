@@ -19,6 +19,7 @@ class Api:
         self.duration = 0  # velikost otevřeného videosouboru bez střihu
         self.videofilename = ''  # cesta k aktuálně otevřenému souboru videa
         self.safe_end_time = 0.2  # časová rezerva odečte se od délky videa
+        self.paused = True
 
         # příkaz api, [příkaz <Mplayeru>, <output True/False>]
         self.cmdlist = {
@@ -27,7 +28,6 @@ class Api:
             'seek': ['pausing seek', False],  # +/- s (0)|+/- % (1)|abs. (2)
             'frame_step': ['frame_step', False],  # o 1 frame vpřed
             'pause': ['pause', False],
-            'is_paused': ['get_property pause', True],  # vraci 1 kdyz paused
             'stop': ['stop', False],
             'progress': ['pausing osd', False],  # 3 nejvyžší level
             }
@@ -72,11 +72,12 @@ class Api:
         udaj o pozici'''
         while not self.player.poll():
             line = self.player.stdout.readline().decode()
-            if 'ANS_' in line:
-                output = line.split('=')[1].replace('\n', '')  # strip newline
-                self.resp_queue.put(output)
-            else:
-                print(line)
+            if line:
+                if 'ANS_' in line:
+                    output = line.split('=')[1].replace('\n', '')  # strip newline
+                    self.resp_queue.put(output)
+                else:
+                    print(line)
                 
     # hlavní získávací funkce
     def command(self, command, params=[]):
@@ -127,12 +128,14 @@ class Api:
             time = self.duration - self.safe_end_time  # bezpečná rezerva
             self.position = self.duration  # vyžší se počítají jako konec
         self.command('seek', params=[time, 2])
+        self.paused = True
 
     def framestep(self):
         if self.position <= self.duration - self.safe_end_time:
             self.position = self.duration   # vyžší se počítají jako end
             self.position = self.get_position()  # nova pozice
             self.command('frame_step')
+            self.paused = True
 
     def get_position(self):
         '''Vypíše pozici potvrzenou Mplayerem a když je
