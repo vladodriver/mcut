@@ -64,8 +64,8 @@ class Gui:
             self.gui, height=0, wraplength=600, bg='#FFFCDD', font="Arial 12")
         self.info.grid(row=5, column=0, columnspan=9, sticky='we')
         # regulace velikost posuvu vpřed/vzad
-        self.frame = '~1 frame => ' + str(self.api.fps)  # vych. hodnota
-        self.shift_values = [self.frame, '0.1 sec. => 0.1', '1 sec. => 1',
+        self.frame = ''  # hodnota shiftu o 1 frame
+        self.shift_values = ['0.1 sec. => 0.1', '1 sec. => 1',
             '5 sec. => 5', '10 sec. => 10', '30 sec. => 30', '1 min. => 60',
             '5 min. => 300', '10 min. => 600', '30 min. => 1800']
         # aktuální hodnota posunu v sekundách
@@ -83,11 +83,6 @@ class Gui:
         # spid a spis seconds/pixels pro duration seconds/pixels pro shift
         self.spid = 0  # poměr pix/sec pro api.duration
         self.spis = self.sec_to_pix_ratio(self.shift_actual_value)
-        # tkinter variable ze self.shift_values
-        self.shift_spinbox_value = StringVar()  # inicializace tk proměnné
-        self.shift_spinbox_value.set('30 sec. => 30')  # nastav vých hodnotu
-        self.shift['textvariable'] = self.shift_spinbox_value  # a přiřaď
-        # Tooltip pro plátno střihu a velikost přetáčení
         for event in '<Enter>', '<Leave>':
             self.pbar.bind(event,
                 lambda e, help=_('Rewind LM + drag - soft RM + drag '):
@@ -204,8 +199,11 @@ class Gui:
                 self.edl.imported_edl = []  # reset stareho importovaneho EDL
                 self.edl_render(self.edl.edl, method='redraw')  # re-draw
                 self.api.open_video(video)  # jaky soubor otevrit
-                self.shift_values[0] = self.frame = '~1 frame => ' +\
-                    str(1 / self.api.fps)  # prenastavit dle nacteneho videa
+                self.frame = '~1 frame => ' + str(1 / self.api.fps)
+                self.shift_values.insert(0, self.frame)
+                self.shift_spinbox_value = StringVar()  # inicializace tk proměnné
+                self.shift_spinbox_value.set('30 sec. => 30')  # nastav vých hodnotu
+                self.shift['textvariable'] = self.shift_spinbox_value  # a přiřaď
                 self.pbar.delete(self.progress)  # vymazat starý progressbar
                 self.edl.edl_name(video)  # název edl dle videa
                 self.cutting['bg'] = '#008A00'  # barvy
@@ -335,24 +333,25 @@ class Gui:
 
     def set_shift(self, e=''):
         '''Interval skoku posunu vpřed/vzad pomocí Up/Down'''
-        # načte aktuální hodnotu widgetu shift (spinbox)
-        shift_index = self.shift_values.index(self.shift_spinbox_value.get())
-        if e:  # ovládáno myší nebo Up/Down klávesou
-            if e.keysym == 'Up' or e.num == 4:  # nahoru na doraz
-                if shift_index < len(self.shift_values) - 1:
-                    shift_index += 1
-                self.shift_spinbox_value.set(self.shift_values[shift_index])
-            elif e and e.keysym == 'Down' or e.num == 5:  # dolu az k 0
-                if shift_index > 0:
-                    shift_index -= 1
-                self.shift_spinbox_value.set(self.shift_values[shift_index])
-        # nastaví aktuálni hodnotu posuvu přetáčení dle indexu zvolene hodnoty
-        self.shift_actual_value = float(self.shift_values[shift_index].split(
-            '=>')[1].strip())
-        # rekonfiguruje self.spis sec/shift_actual_value
-        self.spis = self.sec_to_pix_ratio(self.shift_actual_value)
-        self.gprint(_('Size of shift: ') + str(self.shift_actual_value)
-            + ' s - ' + str(self.spis) + ' sec/pixel')
+        if self.api.duration:
+            # načte aktuální hodnotu widgetu shift (spinbox)
+            shift_index = self.shift_values.index(self.shift_spinbox_value.get())
+            if e:  # ovládáno myší nebo Up/Down klávesou
+                if e.keysym == 'Up' or e.num == 4:  # nahoru na doraz
+                    if shift_index < len(self.shift_values) - 1:
+                        shift_index += 1
+                    self.shift_spinbox_value.set(self.shift_values[shift_index])
+                elif e and e.keysym == 'Down' or e.num == 5:  # dolu az k 0
+                    if shift_index > 0:
+                        shift_index -= 1
+                    self.shift_spinbox_value.set(self.shift_values[shift_index])
+            # nastaví aktuálni hodnotu posuvu přetáčení dle indexu zvolene hodnoty
+            self.shift_actual_value = float(self.shift_values[shift_index].split(
+                '=>')[1].strip())
+            # rekonfiguruje self.spis sec/shift_actual_value
+            self.spis = self.sec_to_pix_ratio(self.shift_actual_value)
+            self.gprint(_('Size of shift: ') + str(self.shift_actual_value)
+                + ' s - ' + str(self.spis) + ' sec/pixel')
 
     def mouse_set_pos(self, e):
         '''Pomocí stisknutí Button-1 myši a tažení přetáčí na lib. pozici'''
@@ -382,7 +381,7 @@ class Gui:
                     self.pos_progress(time_pos)  # update progressbaru
                     if self.editmode == True:
                         self.edl_cutter(time_pos)  # pribl. pozice zaokr.
-                    self.lcd_r['text'] = str(round(time_pos, 2)) + ' s z' +\
+                    self.lcd_r['text'] = str(round(self.api.position, 2)) + ' s z' +\
                         str(self.api.duration) + ' s'
                 elif e.type == '5':  # uvolněno tl. myši resety
                     self.pbar.itemconfig(self.progress, fill='blue')  # reset barvy
@@ -616,8 +615,8 @@ class Gui:
         na časovou hodnotu v time - absolutně zadanou'''
         self.pbar.update_idletasks()
         if self.api.duration:  # video je otevřeno a délka je známá
-            self.lcd_r['text'] = str(round(time, 2)) + ' s z ' +\
-            str(self.api.duration) + ' s'
+            self.lcd_r['text'] = str(round(self.api.position, 2)) + ' s z ' +\
+                str(self.api.duration) + ' s'
             pixels = time / self.spid
             self.pbar.coords(self.progress, 0, 0, pixels, 16)
 
