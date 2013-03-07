@@ -56,7 +56,7 @@ class Api:
     def open_video(self, filename):
         # délku videa je třeba zjistit ihned před otevřením
         self.get_info(filename)  # parse video info
-        self.duration = self.validate_duration() # zjistit délku z video info
+        self.duration = self.get_duration() # zjistit délku z video info
         self.fps = float(self.video_info['ID_VIDEO_FPS'])  # FPS
         self.position = 0  # reset position var to 0
         if self.player.poll():  # restart mplayer process and thread
@@ -86,7 +86,7 @@ class Api:
                 key, val = line.split('=')  # get key=val
                 self.video_info[key] = val  # save it
                     
-    def validate_duration(self):
+    def get_duration(self):
         '''Validace jestli video má správnou (nenulovou) délku'''
         #print(str(self.video_info))
         try:

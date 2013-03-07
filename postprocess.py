@@ -39,7 +39,8 @@ class Postprocess:
         else:
             print(_('Requested file: ') + filename + _(' not found!'))
             sys.exit()
-        self.duration = self.api.get_duration(self.filename)
+        self.api.get_info(filename)  # get videofile info
+        self.duration = self.api.get_duration()  # get duration
         self.edlname = os.path.splitext(self.filename)[0] + '.edl'
         self.orig_filename = os.path.splitext(self.filename)[0] +\
             self.tmp_prefix + os.path.splitext(self.filename)[1]
@@ -86,7 +87,8 @@ class Postprocess:
                     '--split', parts, '-o', self.filename]
                 try:
                     print(mkvtool_cmd)
-                    subprocess.Popen(mkvtool_cmd)
+                    proc = subprocess.Popen(mkvtool_cmd)
+                    proc.communicate()
                 except Exception as er:
                     print(_('Not found mkvmerge program! ') + er.args[1])
             else:
