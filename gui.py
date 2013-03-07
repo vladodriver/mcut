@@ -396,8 +396,6 @@ class Gui:
                 except Exception as er:
                     self.gprint(er.args[1])
                 self.mouse_soft_pos = False  # reset jemného posuvu
-                if self.editmode == True:
-                    self.edl_cutter(round(self.api.position, 2))
                 self.lcd_r['text'] = str(self.api.position) + ' s z' +\
                     str(self.api.duration) + ' s'
                 self.gprint(_('Accurate position: ') + str(self.api.position))
