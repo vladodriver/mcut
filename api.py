@@ -38,8 +38,6 @@ class Api:
             self.mplayer_exec = 'mplayer2.exe'
             
         self.mplayer = [self.mplayer_exec, '-quiet', '-slave', '-idle', '-wid']
-        self.mp_info_cmd = [self.mplayer_exec, '-identify', '-frames', '0',
-        '-vo', 'null', '-ao', 'null']  # mplayer -info cmd
 
     #***LOGIKA****#
 
@@ -54,7 +52,6 @@ class Api:
 
     def open_video(self, filename):
         # délku videa je třeba zjistit ihned před otevřením
-        self.duration = 0  # vynulovat délku
         self.duration = self.get_duration(filename)  # zjistit délku
         self.position = 0  # reset position var to 0
         self.command('open', params=["'" + filename + "'"])
@@ -98,12 +95,14 @@ class Api:
     def get_duration(self, filename):
         '''Zjisti duration pomoci mplayer --info, jinak nelze korektne
         pretacet'''
-        self.mp_info_cmd.append(filename)
-        mp_info = subprocess.Popen(self.mp_info_cmd, stdout=subprocess.PIPE,
-            bufsize=1)
+        mp_info_cmd = [self.mplayer_exec, '-identify', '-frames', '0',
+        '-vo', 'null', '-ao', 'null']  # mplayer -info cmd
+        mp_info_cmd.append(filename)
+        mp_info = subprocess.Popen(mp_info_cmd, stdout=subprocess.PIPE)
         info = mp_info.communicate()[0].decode().split('\n')
         duration = ''
         for line in info:
+            print('INFO>>>' + filename + '>>> ' + line)
             if 'ID_LENGTH=' in line:
                 duration = line.split('=')[1]
                 print(_('DEBUG : video length is: ' + duration))
@@ -124,7 +123,7 @@ class Api:
         if time < 0:
             time = 0
             self.position = 0
-        elif time > self.duration - self.safe_end_time:
+        elif time >= self.duration - self.safe_end_time:
             time = self.duration - self.safe_end_time  # bezpečná rezerva
             self.position = self.duration  # vyžší se počítají jako konec
         self.command('seek', params=[time, 2])
