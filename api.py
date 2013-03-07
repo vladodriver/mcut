@@ -141,13 +141,6 @@ class Api:
         self.command('seek', params=[time, 2])
         self.paused = True
 
-    def framestep(self):
-        if self.position <= self.duration - self.safe_end_time:
-            self.position = self.duration   # vyžší se počítají jako end
-            self.position = self.get_position()  # nova pozice z Mplayeru
-            self.command('frame_step')
-            self.paused = True
-
     def get_position(self):
         '''Vypíše pozici potvrzenou Mplayerem a když je
         >= délka - self.safe_end_time vrací plný čas self.duration'''

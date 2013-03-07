@@ -1,8 +1,8 @@
+import os
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
-import os
 
 from api import Api
 from edl import Edl
@@ -111,10 +111,9 @@ class Gui:
         # ikony pro buttony
         self.icon = []  # zásobník na ikony
         for name in ['open.gif', 'import.gif', 'back_cut.gif', 'back.gif',
-            'play.gif', 'forw.gif', 'forw_cut.gif', 'framestep.gif',
+            'play.gif', 'forw.gif', 'forw_cut.gif', 'remix.gif',
             'save.gif']:
-            self.icon.append(PhotoImage(file="icons/" + name))
-
+            self.icon.append(PhotoImage(file=os.path.join('icons', name)))
         # tlacitka [<text>, <funkce>, <kl.zkratka>, <text nápovědy(tooltip)>]
         self.buttons = [
             ('open_button', ['open_video', '<Control-KeyPress-o>',
@@ -131,8 +130,8 @@ class Gui:
                 _('Fast forward [Right]')]),
             ('next_cut_button', ['next_cut', '<Control-KeyPress-Right>',
                 _('Next cut [Ctrl+Left]')]),
-            ('framestep_button', ['framestep', '<f>',
-                _('Go one frame forward [f]')]),
+            ('remixtep_button', ['remix', '<Control-KeyPress-r>',
+                _('Re multiplex to new file [Ctrl+r]')]),
             ('save_edl_bbutton', ['save_edl', '<Control-KeyPress-s>',
                 _('Save to EDL file [Ctrl+s]')])
             ]
@@ -261,7 +260,7 @@ class Gui:
             else:
                 self.gprint(_('Selecting an EDL file has been canceled'))
         else:
-            self.gprint('Please first open video video!')
+            self.gprint(_('Please first open any video!'))
 
     def rewind(self, e=''):
         '''přetáčení vzad'''
@@ -316,12 +315,9 @@ class Gui:
         except Exception as er:
             self.gprint(er.args[1])
 
-    def framestep(self, e=''):
-        '''skok o 1 frame'''
-        if self.api.duration:
-            self.api.framestep()
-        else:
-            self.gprint(_('You do not have any open video!'))
+    def remix(self, e=''):
+        '''Remultiplex new copy without commercials'''
+        self.gprint(_('Future implemented..'))
 
     def save_edl(self, e=''):
         '''uloží EDL do souboru na žádost uživatele'''
