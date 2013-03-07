@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mcut\n"
-"POT-Creation-Date: 2013-03-06 13:45+0100\n"
-"PO-Revision-Date: 2013-03-06 13:46+0100\n"
+"POT-Creation-Date: 2013-03-07 16:15+0100\n"
+"PO-Revision-Date: 2013-03-07 16:15+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -15,23 +15,19 @@ msgstr ""
 "Plural-Forms: nplurals=3;plural=n==1 ? 0 : n>=2 && n<=4 ? 1 : 2;\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: api.py:107
-msgid "DEBUG : video length is: "
-msgstr "DEBUG : délka videa je: "
+#: api.py:96
+msgid "Unable to identify the video file length, it may be"
+msgstr "Nepodařilo se identifikovat délku videosouboru, bude zřejmě"
 
-#: api.py:113
-msgid "Detected video length 0 s video, it may be"
-msgstr "Zjištěna délka videa 0 s, videosoubor, bude zřejmě"
-
-#: api.py:114 api.py:118
+#: api.py:97 api.py:103
 msgid " damaged!"
 msgstr " poškozen!"
 
-#: api.py:117
-msgid "Unable to identify the video file, it may be"
-msgstr "Nepodařilo se identifikovat videosoubor, bude zřejmě"
+#: api.py:102
+msgid "Detected video length 0 s video, it may be"
+msgstr "Zjištěna délka videa 0 s, videosoubor, bude zřejmě"
 
-#: api.py:143
+#: api.py:158
 msgid "Position not detected, try reload to video file!"
 msgstr "Pozice nebyla zjištěna, zkuste znovu otevřít videosoubor!"
 
@@ -83,7 +79,7 @@ msgstr "Bod střihu "
 msgid " is part of the "
 msgstr " je již část "
 
-#: edl.py:91 edl.py:96 gui.py:436 gui.py:508
+#: edl.py:91 edl.py:96 gui.py:434 gui.py:507
 msgid ". cut "
 msgstr ". střihu "
 
@@ -155,221 +151,222 @@ msgstr "Použití:\n"
 msgid "postprocess.py <Full path to the video file>\n"
 msgstr "postprocess.py <Plná cesta k souboru videa>\n"
 
-#: gui.py:23 gui.py:224
+#: gui.py:23 gui.py:223
 msgid "Commercial cutter"
 msgstr "Střihač reklamy"
 
-#: gui.py:39
-msgid "Double click to switch to full screen."
-msgstr "Dvojklikem přepnete zobrazení na celou obrazovku."
-
-#: gui.py:96
+#: gui.py:93
 msgid "Rewind LM + drag - soft RM + drag "
 msgstr "Přetáčení LM + pohyb - soft PM + pohyb "
 
-#: gui.py:99
+#: gui.py:96
 msgid "Cutting canvas ,"
 msgstr "Plátno střihu ,"
 
-#: gui.py:100
+#: gui.py:97
 msgid " next cut mark [Ctrl] + <- ->, insert new [Enter]/RM"
 msgstr " další bod střihu [Ctrl] + <- ->, vložit nový [Enter]/RM"
 
-#: gui.py:101
+#: gui.py:98
 msgid " Back Esc/LM/P-Shift"
 msgstr " Zpět Esc/LM/P-Shift"
 
-#: gui.py:103
+#: gui.py:100
 msgid "Skip shift: more [Up] less [Down] "
 msgstr "Velikost skoku posuvu: více [Up] méně [Down] "
 
-#: gui.py:110
+#: gui.py:107
 msgid "Cut not selected"
 msgstr "Střih není vybrán"
 
-#: gui.py:112
+#: gui.py:109
 msgid "Video file not open"
 msgstr "Videosoubor není otevřený"
 
-#: gui.py:124
+#: gui.py:121
 msgid "Open video file [Ctrl+o]"
 msgstr "Otevřít video soubor [Ctrl+o]"
 
-#: gui.py:126
+#: gui.py:123
 msgid "Import cuts  from EDL file [Ctrl+i]"
 msgstr "Importovat střihy z EDL souboru [Ctrl+i]"
 
-#: gui.py:128
+#: gui.py:125
 msgid "Previous cut [Ctrl+Left]"
 msgstr "Předcházející střih [Ctrl+Left]"
 
-#: gui.py:130
+#: gui.py:127
 msgid "Fast rewind [Left]"
 msgstr "Přetáčení dozadu [Left]"
 
-#: gui.py:132
+#: gui.py:129
 msgid "Play / pauze or a show of the selected cut [p]"
 msgstr "Přehrát / pauza nebo ukázka vybraného střihu [p]"
 
-#: gui.py:134
+#: gui.py:131
 msgid "Fast forward [Right]"
 msgstr "Přetáčení dopředu [Right]"
 
-#: gui.py:136
+#: gui.py:133
 msgid "Next cut [Ctrl+Left]"
 msgstr "Další střih [Ctrl+Left]"
 
-#: gui.py:138
+#: gui.py:135
 msgid "Go one frame forward [f]"
 msgstr "O jeden snímek dopředu [f]"
 
-#: gui.py:140
+#: gui.py:137
 msgid "Save to EDL file [Ctrl+s]"
 msgstr "Uložit do EDL souboru [Ctrl+s]"
 
-#: gui.py:180
+#: gui.py:177
 msgid "Save changes ?"
 msgstr "Uložit změny ?"
 
-#: gui.py:181
+#: gui.py:178
 msgid "In the list of cuts made ​​changes,"
 msgstr "V souboru seznamu střihů byly učiněny změny,"
 
-#: gui.py:182
+#: gui.py:179
 msgid " you want to save them?"
 msgstr " chcete je uložit?"
 
-#: gui.py:202
+#: gui.py:199
 msgid "Select video file"
 msgstr "Vyberte videosoubor"
 
-#: gui.py:217
+#: gui.py:216
 msgid "Cut unselected"
 msgstr "Střih není vybrán"
 
-#: gui.py:232
+#: gui.py:231
 msgid "Error while opening video "
 msgstr "Chyba při otevření videa "
 
-#: gui.py:235
+#: gui.py:236
 msgid "The video file was not selected!"
 msgstr "Video soubor nebyl vybrán!"
 
-#: gui.py:243
+#: gui.py:244
 msgid "Select the EDL file"
 msgstr "Vyberte EDL soubor"
 
-#: gui.py:252
+#: gui.py:253
 msgid "Importing EDL file "
 msgstr "Import EDL souboru "
 
-#: gui.py:253
+#: gui.py:254
 msgid " was successful"
 msgstr " proběhl úspěšně"
 
-#: gui.py:258
+#: gui.py:259
 msgid "EDL file: "
 msgstr "EDL soubor: "
 
-#: gui.py:259
+#: gui.py:260
 msgid " failed to import - Error: "
 msgstr "Import selhal - Chyba: "
 
-#: gui.py:261
+#: gui.py:262
 msgid "Selecting an EDL file has been canceled"
 msgstr "Výběr EDL souboru byl stornován"
 
-#: gui.py:304 gui.py:321 gui.py:603
+#: gui.py:304 gui.py:324 gui.py:603
 msgid "You do not have any open video!"
 msgstr "Nemáte otevřené žádné video!"
 
-#: gui.py:329
+#: gui.py:332
 msgid "EDL file was saved to: "
 msgstr "EDL soubor byl uložen do: "
 
-#: gui.py:331
+#: gui.py:334
 msgid "EDL could not be saved to: "
 msgstr "EDL soubor se nepodařilo uložit do: "
 
-#: gui.py:335
+#: gui.py:338
 msgid "It is necessary to open a video and perform video cut"
 msgstr "Nejdříve je třeba otevřít video a provést střih"
 
-#: gui.py:355
+#: gui.py:358
 msgid "Size of shift: "
 msgstr "Velikost skoku posuvu: "
 
-#: gui.py:399 gui.py:601
-msgid "Accurate position: "
-msgstr "Přesná pozice: "
-
-#: gui.py:401
+#: gui.py:399
 msgid "First you need to open a video file!"
 msgstr "Nejdříve je potřeba otevřít videosoubor!"
 
-#: gui.py:435
+#: gui.py:433
 msgid "Editing "
 msgstr "Editace "
 
-#: gui.py:464
+#: gui.py:462
 msgid "Editing cut by position."
 msgstr "Editace střihu podle pozice."
 
-#: gui.py:465
+#: gui.py:463
 msgid " Ends with Esc, deleting Delete LM,"
 msgstr " Ukončení Esc, smazání Delete LM,"
 
-#: gui.py:466
+#: gui.py:464
 msgid "Ctrl + <- -> next cut mark."
 msgstr "Ctrl + <- -> další bod střihu."
 
-#: gui.py:482
+#: gui.py:480
 msgid "Deleting cut!"
 msgstr "Vymazaání střihu!"
 
-#: gui.py:483
+#: gui.py:481
 msgid "Really delete "
 msgstr "Opravdu vymazat "
 
-#: gui.py:484
+#: gui.py:482
 msgid ". cut ?"
 msgstr ". střih ?"
 
-#: gui.py:493
+#: gui.py:491
 msgid " was deleted from the EDL"
 msgstr " byl vymazán z EDL"
 
-#: gui.py:507
+#: gui.py:506
 msgid "Start "
 msgstr "Začátek "
 
-#: gui.py:507
+#: gui.py:506
 msgid "End "
 msgstr "Konec "
 
-#: gui.py:512
+#: gui.py:511
 msgid ". cut selected. "
 msgstr ". střih vybrán. "
 
-#: gui.py:513
+#: gui.py:512
 msgid " Back Esc, next cut mark Ctrl + <- ->, editing R-Shift/LM"
 msgstr " Zpět Esc, další bod střihu Ctrl + <- ->, editace P-Shift/LM"
 
-#: gui.py:542
+#: gui.py:543
 msgid "Not selected cut"
 msgstr "Střih není vybrán"
 
-#: gui.py:548
+#: gui.py:549
 msgid "Selecting cut deactivated"
 msgstr "Výběr střihu deaktivován"
 
-#: gui.py:636
+#: gui.py:637
 msgid "Rewind "
 msgstr "Přetáčení "
 
-#: gui.py:637
+#: gui.py:638
 msgid "soft "
 msgstr "jemné "
+
+#~ msgid "Double click to switch to full screen."
+#~ msgstr "Dvojklikem přepnete zobrazení na celou obrazovku."
+
+#~ msgid "DEBUG : video length is: "
+#~ msgstr "DEBUG : délka videa je: "
+
+#~ msgid "Accurate position: "
+#~ msgstr "Přesná pozice: "
 
 #~ msgid "Getting data from mplayer failed !"
 #~ msgstr "Získání dat z mplayeru selhalo !"

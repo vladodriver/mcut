@@ -18,6 +18,8 @@ class Api:
         self.resp_queue = queue.Queue()  # fronta pro ulozeni pars. odpovedi
         self.duration = 0  # velikost otevřeného videosouboru bez střihu
         self.videofilename = ''  # cesta k aktuálně otevřenému souboru videa
+        self.video_info = {}  # video information dict
+        self.fps = 0  # for FPS num value
         self.safe_end_time = 0.2  # časová rezerva odečte se od délky videa
         self.paused = True
 
@@ -41,10 +43,11 @@ class Api:
 
     #***LOGIKA****#
 
-    def start(self, wid):
+    def start(self, wid=''):
         '''Spustí Mplayer -slave -quiet -idle mode - wid je předané id
         okna od Gui'''
-        self.mplayer.append(wid)
+        if wid:
+            self.mplayer.append(wid)
         self.player = subprocess.Popen(self.mplayer, stdin=subprocess.PIPE,
             stdout=subprocess.PIPE)
         self.stdout_thread()
@@ -52,8 +55,13 @@ class Api:
 
     def open_video(self, filename):
         # délku videa je třeba zjistit ihned před otevřením
-        self.duration = self.get_duration(filename)  # zjistit délku
+        self.get_info(filename)  # parse video info
+        self.duration = self.validate_duration() # zjistit délku z video info
+        self.fps = float(self.video_info['ID_VIDEO_FPS'])  # FPS
         self.position = 0  # reset position var to 0
+        if self.player.poll():  # restart mplayer process and thread
+            print('DEBUG : Mplayer restart for file ' + str(filename))
+            self.start()
         self.command('open', params=["'" + filename + "'"])
         self.command('progress', [3])  # OSD level 3
         self.videofilename = filename
@@ -63,6 +71,36 @@ class Api:
         smycce..'''
         out_thread = threading.Thread(target=self.get_stdout, daemon=True)
         out_thread.start()
+
+    def get_info(self, filename):
+        '''Zjisti duration pomoci mplayer --info, jinak nelze korektne
+        pretacet'''
+        mp_info_cmd = [self.mplayer_exec, '-identify', '-frames', '0',
+        '-vo', 'null', '-ao', 'null']  # mplayer -info cmd
+        mp_info_cmd.append(filename)
+        mp_info = subprocess.Popen(mp_info_cmd, stdout=subprocess.PIPE)
+        info = mp_info.communicate()[0].decode().split('\n')
+        for line in info:
+            if 'ID_' in line:
+                print('INFO>>>' + line + '<<<')
+                key, val = line.split('=')  # get key=val
+                self.video_info[key] = val  # save it
+                    
+    def validate_duration(self):
+        '''Validace jestli video má správnou (nenulovou) délku'''
+        #print(str(self.video_info))
+        try:
+            duration = float(self.video_info['ID_LENGTH'])
+        except:
+            raise Exception('ValueError',
+                _('Unable to identify the video file length, it may be') +
+                _(' damaged!'))
+        if duration > 0:
+            return duration
+        elif duration == 0:
+            raise Exception('ValueError',
+            _('Detected video length 0 s video, it may be') +
+            _(' damaged!'))
 
     def get_stdout(self, queue=''):
         '''Získá aktuální kousek bufferu a uloží do fronty kdyz je tam
@@ -91,33 +129,7 @@ class Api:
                 return answ
             else:
                 return True
-                
-    def get_duration(self, filename):
-        '''Zjisti duration pomoci mplayer --info, jinak nelze korektne
-        pretacet'''
-        mp_info_cmd = [self.mplayer_exec, '-identify', '-frames', '0',
-        '-vo', 'null', '-ao', 'null']  # mplayer -info cmd
-        mp_info_cmd.append(filename)
-        mp_info = subprocess.Popen(mp_info_cmd, stdout=subprocess.PIPE)
-        info = mp_info.communicate()[0].decode().split('\n')
-        duration = ''
-        for line in info:
-            print('INFO>>>' + filename + '>>> ' + line)
-            if 'ID_LENGTH=' in line:
-                duration = line.split('=')[1]
-                print(_('DEBUG : video length is: ' + duration))
-                duration = float(duration)
-                if duration > 0:
-                    return duration
-                elif duration == 0:
-                    raise Exception('ValueError',
-                    _('Detected video length 0 s video, it may be') +
-                    _(' damaged!'))
-        if not duration:
-            raise Exception('ValueError',
-                    _('Unable to identify the video file, it may be') +
-                    _(' damaged!'))
-
+                    
     def seek(self, time):
         '''Seekování s rezervou self._end_time tolerance'''
         if time < 0:
@@ -132,7 +144,7 @@ class Api:
     def framestep(self):
         if self.position <= self.duration - self.safe_end_time:
             self.position = self.duration   # vyžší se počítají jako end
-            self.position = self.get_position()  # nova pozice
+            self.position = self.get_position()  # nova pozice z Mplayeru
             self.command('frame_step')
             self.paused = True
 
