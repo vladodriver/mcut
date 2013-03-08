@@ -132,14 +132,17 @@ class Api:
                     
     def seek(self, time):
         '''Seekování s rezervou self._end_time tolerance'''
+        self.paused = True  # seeking = > pause state True
+        safe_end = self.duration - self.safe_end_time
         if time < 0:
-            time = 0
-            self.position = 0
-        elif time >= self.duration - self.safe_end_time:
-            time = self.duration - self.safe_end_time  # bezpečná rezerva
-            self.position = self.duration  # vyžší se počítají jako konec
+            time = 0  # > 0 = > nastav self.position na 0
+        elif time >= safe_end:
+            time = safe_end  # bezpečná rezerva
+            self.position = self.duration  # >= safe_end => nastav duration 
+        else:
+            self.position = time
         self.command('seek', params=[time, 2])
-        self.paused = True
+        
 
     def get_position(self):
         '''Vypíše pozici potvrzenou Mplayerem a když je

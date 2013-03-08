@@ -33,7 +33,10 @@ class Translate:
         
     def get_translations(self):
         '''get path to mo file for translating messages and initiate it'''
-        lang = locale.getdefaultlocale()[0]
+        try:
+            lang = locale.getdefaultlocale()[0]
+        except:
+            lang = ''  # reset kdyz je nerospoznan getdefaultlocale
         if lang:
             print(lang)
             locale_string = '{}.mo'.format(lang[0:2])

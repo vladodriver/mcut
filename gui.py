@@ -200,9 +200,11 @@ class Gui:
                 self.edl_render(self.edl.edl, method='redraw')  # re-draw
                 self.api.open_video(video)  # jaky soubor otevrit
                 self.frame = '~1 frame => ' + str(1 / self.api.fps)
-                self.shift_values.insert(0, self.frame)
+                if self.shift_values[0] != self.frame:  # jen kdyz tam neni
+                    self.shift_values.insert(0, self.frame)  # vloz FPS shift
                 self.shift_spinbox_value = StringVar()  # inicializace tk proměnné
                 self.shift_spinbox_value.set('30 sec. => 30')  # nastav vých hodnotu
+                self.shift_actual_value = 30
                 self.shift['textvariable'] = self.shift_spinbox_value  # a přiřaď
                 self.pbar.delete(self.progress)  # vymazat starý progressbar
                 self.edl.edl_name(video)  # název edl dle videa
@@ -278,6 +280,8 @@ class Gui:
         '''pause/play'''
         if self.api.paused == True:
             self.api.paused = False
+        else:
+            self.api.paused = True
         if self.api.duration:
             try:
                 cut_index = self.edl.sel_cut_index[0]
@@ -285,23 +289,25 @@ class Gui:
                     self.api.command('pause')
                 else:  # kdyz je vybran cut prehraje se ukazka cutu
                     cut_start = self.edl.edl[cut_index][0]  # zacatek preskoku
-                    if cut_start >= self.play_before_cut:  # sekund hrani pred r.
-                        pos_before = cut_start - self.play_before_cut  # zacit -2s
-                        self.gui.after(self.play_before_cut * 1000,
+                    if cut_start >= self.play_before_cut:  # sekund hrani pred
+                        pos_before = cut_start - self.play_before_cut  # < 2s
+                        self.gui.after(round(self.play_before_cut, 3) * 1000,
                             self.play_after_cut)
                     else:
                         pos_before = 0  # hrej od zacatku a preskoc $cut_start sec
-                        self.gui.after(int(cut_start * 1000), self.play_after_cut)
+                        self.gui.after(round(cut_start, 3) * 1000,
+                            self.play_after_cut)
                     self.api.seek(pos_before)  # pretoc na start ukazky
                     self.pos_progress(pos_before)  # pretoc progressbar -//-
                     self.api.command('pause')  # zacni hrat
+                    self.api.paused = False
             except Exception as er:
                 self.gprint(er.args[1])
         else:
             self.gprint(_('You do not have any open video!'))
 
     def play_after_cut(self):
-        '''Prehraje ukazku reklamy ...'''
+        '''Prehraje usek ukazky po reklamě ...'''
         try:
             cut_index = self.edl.sel_cut_index[0]  # zjisti aktualni sel. index
             cut_end = self.edl.edl[cut_index][1]  # konec reklamy
@@ -350,44 +356,37 @@ class Gui:
                 '=>')[1].strip())
             # rekonfiguruje self.spis sec/shift_actual_value
             self.spis = self.sec_to_pix_ratio(self.shift_actual_value)
-            self.gprint(_('Size of shift: ') + str(self.shift_actual_value)
-                + ' s - ' + str(self.spis) + ' sec/pixel')
 
     def mouse_set_pos(self, e):
         '''Pomocí stisknutí Button-1 myši a tažení přetáčí na lib. pozici'''
         if self.api.duration:  # video musí být open
             try:
                 # reakce na událost dle typu
-                if e.type == '4' and e.num == 3:
-                    self.mouse_soft_pos = True  # přepnutí na jemný Myš 3
-                    self.click_canvas_pos = e.x  # x je +/- pix od kliku
-                elif e.type == '4' and e.num == 1 or e.type == '6' \
-                    and self.mouse_soft_pos == False:  # nebylo přepnuto na jemny
-                    self.pbar.itemconfig(self.progress, fill='orange')  # oranzovy
+                if e.num == 3 and e.type == '4':
+                    self.mouse_soft_pos = True  # přepnutí na jemný - PM
+                    self.click_canvas_pos = e.x  # +/- pix od kliku, pozici
+                    self.click_time_pos = float(self.api.position)  # ulozit
+                    time_pos = self.click_time_pos
+                elif e.num == 1 and e.type == '4':
+                    self.mouse_soft_pos == False  # vypne se jemny
                     time_pos = self.spid * e.x  # vypočet time pos
-                    self.api.seek(time_pos)  # přetočit na
-                    self.api.position = time_pos  # update pozice v api
-                    self.pos_progress(time_pos)  # update progressbaru a lcd
-                    if self.editmode == True:
-                        self.edl_cutter(time_pos)
-                    self.lcd_r['text'] = str(round(self.api.position, 2)) +\
-                        ' s z' + str(self.api.duration) + ' s'
-                elif e.type == '6' and self.mouse_soft_pos == True:  # jemné Myš 3
-                    self.pbar.itemconfig(self.progress, fill='orange')
-                    click_pix_diff = e.x - self.click_canvas_pos  # myš +/-
-                    time_diff = self.spis * click_pix_diff
-                    time_pos = time_diff + self.api.position
-                    self.api.seek(time_pos)
-                    self.pos_progress(time_pos)  # update progressbaru
-                    if self.editmode == True:
-                        self.edl_cutter(time_pos)  # pribl. pozice zaokr.
-                    self.lcd_r['text'] = str(round(self.api.position, 2)) + ' s z' +\
-                        str(self.api.duration) + ' s'
+                    self.pos_progress(time_pos, color='orange')  # update progr.
+                elif e.num == '??' and e.type == '6': # jemné Myš 3
+                    if self.mouse_soft_pos == False:
+                        time_pos = self.spid * e.x
+                        self.pos_progress(time_pos, color='orange')
+                    elif self.mouse_soft_pos == True:
+                        click_pix_diff = e.x - self.click_canvas_pos  # myš +/-
+                        rel_time = click_pix_diff * self.spis
+                        time_pos = rel_time + self.click_time_pos
+                        self.pos_progress(time_pos, color='orange')
                 elif e.type == '5':  # uvolněno tl. myši resety
-                    self.pbar.itemconfig(self.progress, fill='blue')  # reset barvy
+                    time_pos = self.api.position
+                    self.pos_progress(self.api.position, color='blue')
                     self.mouse_soft_pos = False  # reset jemného posuvu
-                    self.lcd_r['text'] = str(round(self.api.position, 2)) +\
-                        ' s z' + str(self.api.duration) + ' s'
+                self.api.seek(time_pos)  # přetočit na
+                if self.editmode == True:
+                    self.edl_cutter(self.api.position)  # cut value 
             except Exception as er:
                 self.gprint(er.args[1])
         else:
@@ -423,7 +422,7 @@ class Gui:
             self.edl.edl_build_validate(new_cut, self.edl.edl,
                 self.api.duration, edit_to=edit_to)  # validace
             self.edl.edl_build(new_cut, self.edl.edl, self.api.duration,
-                edit_to=edit_to)  # vložení upr kopie do EDL
+                edit_to=edit_to)  # vložení do EDL
             self.edl_render(self.edl.edl, method='redraw')
             self.lcd_l['text'] = _('Editing ') + str(cut_index + 1) +\
                 _('. cut ') + str(self.edl.edl[cut_index])
@@ -432,7 +431,7 @@ class Gui:
                 cut_index, mark_index = self.edl.find_pos_nearest_mark(
                     position, self.edl.edl, self.api.duration, direction='abs')
                 self.cut_activate(cut_index, 1)  # aktivuj cut a levy mark
-                self.edit_cut_changer()
+                self.edit_cut_changer()  # spust editaci na posunuti konce
         except Exception as er:
             self.gprint(er.args[1])
 
@@ -495,7 +494,6 @@ class Gui:
                     fill='#AB0000')  # zrusit zcervenani
             position = self.edl.edl[cut_index][mark_index]  # nova pozice
             self.api.seek(position)  # přetočit na novou pozici
-            self.api.position = position  # ulozit novou pozici
             self.edl.sel_cut_index = [cut_index, mark_index]  # novy sel. index
             self.pos_progress(position)  # posunout progressbar a zobrazit v lcd_l
             mark_text = _('Start ') if mark_index == 0 else _('End ')
@@ -583,13 +581,9 @@ class Gui:
                     position = self.api.position + self.shift_actual_value
                 self.api.seek(position)
                 self.pos_progress(position)
-                try:
-                    self.api.position = position
-                except Exception as er:
-                    self.gprint(er.args[1])
                 if self.editmode == True:
                     try:
-                        self.edl_cutter(position)
+                        self.edl_cutter(self.api.position)
                     except Exception as er:
                         self.gprint(er)
             except Exception as er:
@@ -610,15 +604,17 @@ class Gui:
             except Exception as er:
                 self.gprint(er.args[1])
 
-    def pos_progress(self, time):
+    def pos_progress(self, time, color=''):
         '''Překresluje progressbar videa (velikost obdélníku) v plátně střihu
         na časovou hodnotu v time - absolutně zadanou'''
         self.pbar.update_idletasks()
         if self.api.duration:  # video je otevřeno a délka je známá
-            self.lcd_r['text'] = str(round(self.api.position, 2)) + ' s z ' +\
+            self.lcd_r['text'] = str(round(self.api.position, 2)) + ' s / ' +\
                 str(self.api.duration) + ' s'
             pixels = time / self.spid
             self.pbar.coords(self.progress, 0, 0, pixels, 16)
+            if color:
+                self.pbar.itemconfig(self.progress, fill=color)
 
     def redraw_canvas(self, e=''):
         '''Přepočítat a překreslit prvky v kanvasech a jeho prvky při změně
@@ -629,7 +625,7 @@ class Gui:
         self.spis = self.sec_to_pix_ratio(self.shift_actual_value)  # // shift
         self.pos_progress(self.api.position)  # překr progressbaru
         self.edl_render(self.edl.edl, method='resize')
-        self.gprint(_('Rewind ') + str(self.spid) +
+        print('DEBUG : ' + _('Rewind ') + str(self.spid) +
                 ' sec/pix - ' + _('soft ') + str(self.spis) + ' sec/pix')
 
     def actual_position(self):
