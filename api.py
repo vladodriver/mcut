@@ -1,6 +1,4 @@
 import subprocess
-import time
-import select
 import threading
 import queue
 import sys
@@ -38,7 +36,6 @@ class Api:
             self.mplayer_exec = 'mplayer'
         elif sys.platform == 'win32':
             self.mplayer_exec = 'mplayer2.exe'
-            
         self.mplayer = [self.mplayer_exec, '-quiet', '-slave', '-idle', '-wid']
 
     #***LOGIKA****#
@@ -56,7 +53,7 @@ class Api:
     def open_video(self, filename):
         # délku videa je třeba zjistit ihned před otevřením
         self.get_info(filename)  # parse video info
-        self.duration = self.get_duration() # zjistit délku z video info
+        self.duration = self.get_duration()  # zjistit délku z video info
         self.fps = float(self.video_info['ID_VIDEO_FPS'])  # FPS
         self.position = 0  # reset position var to 0
         if self.player.poll():  # restart mplayer process and thread
@@ -65,7 +62,7 @@ class Api:
         self.command('open', params=["'" + filename + "'"])
         self.command('progress', [3])  # OSD level 3
         self.videofilename = filename
-        
+
     def stdout_thread(self):
         '''Spustí funkci ge_stdout v samostatnem threadu s timeoutem kvuli
         smycce..'''
@@ -85,7 +82,7 @@ class Api:
                 print('INFO>>>' + line + '<<<')
                 key, val = line.split('=')  # get key=val
                 self.video_info[key] = val  # save it
-                    
+
     def get_duration(self):
         '''Validace jestli video má správnou (nenulovou) délku'''
         #print(str(self.video_info))
@@ -109,11 +106,11 @@ class Api:
             line = self.player.stdout.readline().decode()
             if line:
                 if 'ANS_' in line:
-                    output = line.split('=')[1].replace('\n', '')  # strip newline
+                    output = line.split('=')[1].replace('\n', '')  # strip \n
                     self.resp_queue.put(output)
                 else:
                     print(line)
-                
+
     # hlavní získávací funkce
     def command(self, command, params=[]):
         '''prijme prikaz pro mplayer typ(get/set, co, parametry)
@@ -125,11 +122,11 @@ class Api:
             req = bytes(com[0] + ' ' + par + '\n', 'utf8')
             self.player.stdin.write(req)  # příkaz
             if  com[1] == True:  # com[1] výstup je True
-                answ =  self.resp_queue.get(timeout=1)
+                answ = self.resp_queue.get(timeout=1)
                 return answ
             else:
                 return True
-                    
+
     def seek(self, time):
         '''Seekování s rezervou self._end_time tolerance'''
         self.paused = True  # seeking = > pause state True
@@ -138,11 +135,11 @@ class Api:
             time = 0  # > 0 = > nastav self.position na 0
         elif time >= safe_end:
             time = safe_end  # bezpečná rezerva
-            self.position = self.duration  # >= safe_end => nastav duration 
+            self.position = self.duration  # >= safe_end => nastav duration
         else:
             self.position = time
         self.command('seek', params=[time, 2])
-        
+
 
     def get_position(self):
         '''Vypíše pozici potvrzenou Mplayerem a když je

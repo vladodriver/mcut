@@ -35,7 +35,7 @@ class Gui:
         self.video.grid(row=0, column=0, columnspan=9, sticky='wens')
         self.video.bind('<Double-Button-1>', self.fullscreen)  # fullscreen
         # plátno střihu
-        self.play_before_cut = 2  # počet sekund ukázky přehrání přesk. reklamy
+        self.play_before_cut = 3  # počet sekund ukázky přehrání přesk. reklamy
         self.blink_time = 200  # interval blikání editovaného cutu v ms
         self.cutting = Canvas(self.gui, width=800, height=22, bg='#D9D9D9',
             cursor='hand1', highlightthickness=0)
@@ -202,10 +202,10 @@ class Gui:
                 self.frame = '~1 frame => ' + str(1 / self.api.fps)
                 if self.shift_values[0] != self.frame:  # jen kdyz tam neni
                     self.shift_values.insert(0, self.frame)  # vloz FPS shift
-                self.shift_spinbox_value = StringVar()  # inicializace tk proměnné
-                self.shift_spinbox_value.set('30 sec. => 30')  # nastav vých hodnotu
+                self.shift_spinbox_value = StringVar()  # tk proměnná
+                self.shift_spinbox_value.set('30 sec. => 30')  # nastav vých.
                 self.shift_actual_value = 30
-                self.shift['textvariable'] = self.shift_spinbox_value  # a přiřaď
+                self.shift['textvariable'] = self.shift_spinbox_value  # init
                 self.pbar.delete(self.progress)  # vymazat starý progressbar
                 self.edl.edl_name(video)  # název edl dle videa
                 self.cutting['bg'] = '#008A00'  # barvy
@@ -230,7 +230,7 @@ class Gui:
                 messagebox.showerror(_('Error while opening video '),
                     er.args[1])
                 self.close()
-                    
+
         else:
             self.gprint(_('The video file was not selected!'))
 
@@ -291,11 +291,11 @@ class Gui:
                     cut_start = self.edl.edl[cut_index][0]  # zacatek preskoku
                     if cut_start >= self.play_before_cut:  # sekund hrani pred
                         pos_before = cut_start - self.play_before_cut  # < 2s
-                        self.gui.after(round(self.play_before_cut, 3) * 1000,
+                        self.gui.after(round(self.play_before_cut) * 1000,
                             self.play_after_cut)
                     else:
-                        pos_before = 0  # hrej od zacatku a preskoc $cut_start sec
-                        self.gui.after(round(cut_start, 3) * 1000,
+                        pos_before = 0  # hrej a preskoc $cut_start sec
+                        self.gui.after(round(cut_start * 1000),
                             self.play_after_cut)
                     self.api.seek(pos_before)  # pretoc na start ukazky
                     self.pos_progress(pos_before)  # pretoc progressbar -//-
@@ -341,19 +341,22 @@ class Gui:
         '''Interval skoku posunu vpřed/vzad pomocí Up/Down'''
         if self.api.duration:
             # načte aktuální hodnotu widgetu shift (spinbox)
-            shift_index = self.shift_values.index(self.shift_spinbox_value.get())
+            shift_index = self.shift_values.index(
+                self.shift_spinbox_value.get())
             if e:  # ovládáno myší nebo Up/Down klávesou
                 if e.keysym == 'Up' or e.num == 4:  # nahoru na doraz
                     if shift_index < len(self.shift_values) - 1:
                         shift_index += 1
-                    self.shift_spinbox_value.set(self.shift_values[shift_index])
-                elif e and e.keysym == 'Down' or e.num == 5:  # dolu az k 0
+                    self.shift_spinbox_value.set(
+                        self.shift_values[shift_index])
+                elif e and e.keysym == 'Down' or e.num == 5:  # dolu k 0
                     if shift_index > 0:
                         shift_index -= 1
-                    self.shift_spinbox_value.set(self.shift_values[shift_index])
-            # nastaví aktuálni hodnotu posuvu přetáčení dle indexu zvolene hodnoty
-            self.shift_actual_value = float(self.shift_values[shift_index].split(
-                '=>')[1].strip())
+                    self.shift_spinbox_value.set(
+                        self.shift_values[shift_index])
+            # nastaví hodnotu posuvu přetáčení dle indexu zvolene hodnoty
+            self.shift_actual_value = float(
+                self.shift_values[shift_index].split('=>')[1].strip())
             # rekonfiguruje self.spis sec/shift_actual_value
             self.spis = self.sec_to_pix_ratio(self.shift_actual_value)
 
@@ -370,8 +373,8 @@ class Gui:
                 elif e.num == 1 and e.type == '4':
                     self.mouse_soft_pos == False  # vypne se jemny
                     time_pos = self.spid * e.x  # vypočet time pos
-                    self.pos_progress(time_pos, color='orange')  # update progr.
-                elif e.num == '??' and e.type == '6': # jemné Myš 3
+                    self.pos_progress(time_pos, color='orange')   # progr.
+                elif e.num == '??' and e.type == '6':  # jemné Myš 3
                     if self.mouse_soft_pos == False:
                         time_pos = self.spid * e.x
                         self.pos_progress(time_pos, color='orange')
@@ -386,13 +389,14 @@ class Gui:
                     self.mouse_soft_pos = False  # reset jemného posuvu
                 self.api.seek(time_pos)  # přetočit na
                 if self.editmode == True:
-                    self.edl_cutter(self.api.position)  # cut value 
+                    self.edl_cutter(self.api.position)  # cut value
             except Exception as er:
                 self.gprint(er.args[1])
         else:
             self.gprint(_('First you need to open a video file!'))
-            
+
     def edl_insert_new(self, e):
+        '''Insert new cut start and end'''
         position = self.api.position
         self.edl_cutter(position, type='new')
 
@@ -401,24 +405,25 @@ class Gui:
         při tvorbě, nebo editaci nového cutu před vložením do EDL. Funkce
         je volána klikem do zelene pro vytvoření nového cutu a dále se edituje
         posuvem modreho posuvniku'''
-        position = round(position, 2)  # zaookr na 2 mista
-        if type == 'new':
-            new_cut = [position, position]  # novy cut na pretoc. pozici
-            cut_index = len(self.edl.edl)
-            edit_to = []  # edit_to nezadano
-        # úprava existujiciho nějaký cut je vybrán a edit mod je spuštěn
-        elif self.edl.sel_cut_index != [None, None] and self.editmode == True:
-            cut_index = self.edl.sel_cut_index[0]  # index_cut vybr. cutu
-            mark_index = self.edl.sel_cut_index[1]  # index_mark vybr. marku
-            new_cut = list(self.edl.edl[cut_index])  # editovany cut
-            new_cut[mark_index] = position  # vloz novy mark_time
-            edit_to = [cut_index]  # index cutu v EDL jenz se edituje v []
-            if new_cut[0] >= new_cut[1]:
-                if mark_index == 1:  # prohodi start end pri pretazeni
-                    self.cut_activate(cut_index, 0)  # konce
-                else:
-                    self.cut_activate(cut_index, 1)  # nebo zacatku
         try:
+            position = round(position, 2)  # zaookr na 2 mista
+            if type == 'new':
+                new_cut = [position, position]  # novy cut na pretoc. pozici
+                cut_index = len(self.edl.edl)
+                edit_to = []  # edit_to nezadano
+            # úprava existujiciho nějaký cut je vybrán a edit mod je spuštěn
+            elif self.edl.sel_cut_index != [None, None] and self.editmode == True:
+                cut_index = self.edl.sel_cut_index[0]  # index_cut vybr. cutu
+                mark_index = self.edl.sel_cut_index[1]  # index_mark vybr. marku
+                new_cut = list(self.edl.edl[cut_index])  # editovany cut
+                new_cut[mark_index] = position  # vloz novy mark_time
+                edit_to = [cut_index]  # index cutu v EDL jenz se edituje v []
+                if new_cut[0] >= new_cut[1]:
+                    if mark_index == 1:  # prohodi start end pri pretazeni
+                        self.cut_activate(cut_index, 0)  # konce
+                    else:
+                        self.cut_activate(cut_index, 1)  # nebo zacatku
+
             self.edl.edl_build_validate(new_cut, self.edl.edl,
                 self.api.duration, edit_to=edit_to)  # validace
             self.edl.edl_build(new_cut, self.edl.edl, self.api.duration,
@@ -438,31 +443,34 @@ class Gui:
     def edit_cut_changer(self, e=''):
         '''Ovladač pro prepinani cut modů select pro ukázku a mazání a edit
         modu pro úpravu (resizing)'''
-        if e and e.type == '4':  # kliknutím
-            position = e.x * self.spid
-        elif e and e.type == '2' and e.keysym == 'Shift_R' or not e:
-            # nebo dle pozice se vybere nejblizsi cut/mark
-            position = self.api.position
-        # x sour. na cas a nejblizsi mark
-        cut_index, mark_index = self.edl.find_pos_nearest_mark(
-            position, self.edl.edl, self.api.duration)
-        # není aktivovaný
-        if self.edl.sel_cut_index == [None, None]:
-            self.cut_activate(cut_index, mark_index)  # aktivace cut_marku
-            self.lcd_l['bg'] = '#DDFFDE'  # zelene lcd
-        # uz aktivovany - vstup do edit mode
-        elif self.editmode is not True:
-            self.gprint(
-                _('Editing cut by position.') +
-                _(' Ends with Esc, deleting Delete LM,') +
-                _('Ctrl + <- -> next cut mark.'))
-            self.editmode = True  # aktivace edit modu
-            self.cut_blink()  # blikat
-            self.lcd_l['bg'] = '#FBC3C5'  # cervene lcd
-        elif self.editmode == True:
-            self.editmode = False
-            self.deselect_cut()
-            self.lcd_l['bg'] = '#FFFCDD'  # zpet na vychozi barvu
+        try:
+            if e and e.type == '4':  # kliknutím
+                position = e.x * self.spid
+            elif e and e.type == '2' and e.keysym == 'Shift_R' or not e:
+                # nebo dle pozice se vybere nejblizsi cut/mark
+                position = self.api.position
+            # x sour. na cas a nejblizsi mark
+            cut_index, mark_index = self.edl.find_pos_nearest_mark(
+                position, self.edl.edl, self.api.duration)
+            # není aktivovaný
+            if self.edl.sel_cut_index == [None, None]:
+                self.cut_activate(cut_index, mark_index)  # aktivace cut_marku
+                self.lcd_l['bg'] = '#DDFFDE'  # zelene lcd
+            # uz aktivovany - vstup do edit mode
+            elif self.editmode is not True:
+                self.gprint(
+                    _('Editing cut by position.') +
+                    _(' Ends with Esc, deleting Delete LM,') +
+                    _('Ctrl + <- -> next cut mark.'))
+                self.editmode = True  # aktivace edit modu
+                self.cut_blink()  # blikat
+                self.lcd_l['bg'] = '#FBC3C5'  # cervene lcd
+            elif self.editmode == True:
+                self.editmode = False
+                self.deselect_cut()
+                self.lcd_l['bg'] = '#FFFCDD'  # zpet na vychozi barvu
+        except Exception as er:
+            self.gprint(er.args[1])
 
     def cut_delete(self, e=''):
         '''Odstranění prave vybraneho cutu v select mode z EDL a prekresleni
@@ -495,11 +503,11 @@ class Gui:
             position = self.edl.edl[cut_index][mark_index]  # nova pozice
             self.api.seek(position)  # přetočit na novou pozici
             self.edl.sel_cut_index = [cut_index, mark_index]  # novy sel. index
-            self.pos_progress(position)  # posunout progressbar a zobrazit v lcd_l
+            self.pos_progress(position)  # posunout progressbar + lcd_l
             mark_text = _('Start ') if mark_index == 0 else _('End ')
-            self.lcd_l['text'] = mark_text + str(cut_index + 1) + _('. cut ') +\
-                str(self.edl.edl[cut_index])
-            self.cutting.itemconfig(self.edl_cuts[cut_index], fill='red')  # select
+            self.lcd_l['text'] = mark_text + str(cut_index + 1) +\
+                _('. cut ') + str(self.edl.edl[cut_index])
+            self.cutting.itemconfig(self.edl_cuts[cut_index], fill='red')
             self.gprint(
                 str(cut_index + 1) + _('. cut selected. ') +
                 _(' Back Esc, next cut mark Ctrl + <- ->, editing R-Shift/LM'))

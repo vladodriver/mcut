@@ -1,6 +1,5 @@
 import os
 
-
 class Edl:
     '''Třída vytváření, import, validaci a ukládání EDL'''
 
