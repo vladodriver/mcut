@@ -287,6 +287,7 @@ class Gui:
                 cut_index = self.edl.sel_cut_index[0]
                 if cut_index == None:  # normalne play/pause strih neni vybran
                     self.api.command('pause')
+                    self.api.paused = False
                 else:  # kdyz je vybran cut prehraje se ukazka cutu
                     cut_start = self.edl.edl[cut_index][0]  # zacatek preskoku
                     if cut_start >= self.play_before_cut:  # sekund hrani pred

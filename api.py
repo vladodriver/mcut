@@ -61,6 +61,7 @@ class Api:
             self.start()
         self.command('open', params=["'" + filename + "'"])
         self.command('progress', [3])  # OSD level 3
+        self.command('pause')
         self.videofilename = filename
 
     def stdout_thread(self):
@@ -120,6 +121,7 @@ class Api:
             par = ' '.join(map(str, params))  # spoj parametry
             # prikaz je v com[0]
             req = bytes(com[0] + ' ' + par + '\n', 'utf8')
+            self.player.stdin.flush() # ! nutne jinak se muze ucpat
             self.player.stdin.write(req)  # příkaz
             if  com[1] == True:  # com[1] výstup je True
                 answ = self.resp_queue.get(timeout=1)
