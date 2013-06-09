@@ -59,9 +59,10 @@ class Api:
         if self.player.poll():  # restart mplayer process and thread
             print('DEBUG : Mplayer restart for file ' + str(filename))
             self.start()
+        #self.command('pause')
+        self.paused = True
         self.command('open', params=["'" + filename + "'"])
         self.command('progress', [3])  # OSD level 3
-        self.command('pause')
         self.videofilename = filename
 
     def stdout_thread(self):
