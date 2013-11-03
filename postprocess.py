@@ -27,18 +27,20 @@ class Postprocess:
     def __init__(self, filename):
         self.edl = Edl()  # nahraj třídu Edl
         self.api = Api()  # nahraj třídu Api
-        # path to mkvmerge executable for all platforms
+        # path to ffmpeg executable for all platforms
         if sys.platform == 'linux' or sys.platform == 'darwin':
-            self.mkvmerge_exec = 'mkvmerge'
+            self.ffmpeg_exec = 'ffmpeg'
         elif sys.platform == 'win32':
-            self.mkvmerge_exec = 'mkvmerge.exe'
+            self.ffmpeg_exec = 'ffmpeg.exe'
 
         self.tmp_prefix = '_nocut'  # přidá se do <filename>_prefix.mkv
+
         if os.path.exists(filename):
             self.filename = filename
         else:
             print(_('Requested file: ') + filename + _(' not found!'))
             sys.exit()
+
         self.api.get_info(filename)  # get videofile info
         self.duration = self.api.get_duration()  # get duration
         self.edlname = os.path.splitext(self.filename)[0] + '.edl'
@@ -51,6 +53,13 @@ class Postprocess:
         except Exception as er:
             print(_('Failed to import an EDL file - error : ') + str(er))
             sys.exit()
+            
+        try:
+            proc = subprocess.Popen(self.ffmpeg_exec)
+            proc.communicate()
+        except Exception as er:
+            print(_('Not found ffmpeg program! ') + er.args[1])
+            sys.exit()
 
     # Pomocné funkce
     def hour_min_sec(self, seconds):
@@ -59,8 +68,8 @@ class Postprocess:
         h, m = divmod(m, 60)
         return str(int(h)) + ':' + str(int(m)) + ':' + str(round(s, 2))
 
-    def mkvmerge(self):
-        '''Remux video with mkvmerge'''
+    def remux(self):
+        '''Remux video with ffmpeg'''
         if self.duration:  # delku videa je potreba znat
             green_areas = []  # vyhledej green areas
             max_index = len(self.edllist) - 1
@@ -74,23 +83,50 @@ class Postprocess:
                 if self.edllist.index(cut) == max_index\
                     and cut[1] < self.duration:
                     green_areas.append([cut[1], self.duration])  # last -> end
+
             print(_('DEBUG : green areas : ') + str(green_areas))
+            
             if green_areas:
                 parts_list = []
                 for green in green_areas:
-                    time = [self.hour_min_sec(time) for time in green]
-                    parts_list.append('+' + str(time[0]) + '-' + str(time[1]))
-                    parts = 'parts:' + ','.join(parts_list)
+                    time = self.hour_min_sec(green[0])
+                    duration = self.hour_min_sec(green[1] - green[0])
+                    parts_list.append([time, duration]) 
+                    
                 # prejmenuj na *-orig.mkv
                 os.rename(self.filename, self.orig_filename)
-                mkvtool_cmd = [self.mkvmerge_exec, self.orig_filename,
-                    '--split', parts, '-o', self.filename]
-                try:
-                    print(mkvtool_cmd)
-                    proc = subprocess.Popen(mkvtool_cmd)
+                
+                # části pro spojení
+                cut_parts = []
+                # rozstřihat jednotlivé části od part[0], délka part[1]
+                for part in parts_list:
+                    index = str(parts_list.index(part))
+                    out_part = self.filename + '.part' + index + '.ts'
+                    cut_parts.append(out_part)
+                    
+                    # bsf pro h264 avc streamy je nutný jinak ffmpeg řve
+                    if self.api.video_info['ID_VIDEO_FORMAT'] == 'avc1':
+                        bsf = ['-vbsf', 'h264_mp4toannexb']
+                    else:
+                        bsf = list()
+
+                    ffmpeg_cmd = [self.ffmpeg_exec, '-i', self.orig_filename,
+                        '-ss', part[0], '-t', part[1], '-f', 'mpegts',
+                        '-c', 'copy'] + bsf + [out_part]
+                    
+                    print('DEBUG:')
+                    print(ffmpeg_cmd)
+                    proc = subprocess.Popen(ffmpeg_cmd)
                     proc.communicate()
-                except Exception as er:
-                    print(_('Not found mkvmerge program! ') + er.args[1])
+
+                concat_str = 'concat:' + '|'.join(cut_parts)
+                # spojit out_parts soubory do výsledného souboru self.filename
+                ffmpeg_cmd2 = [self.ffmpeg_exec, '-isync',
+                '-i', concat_str, '-f', 'matroska', '-c', 'copy', self.filename]
+
+                proc = subprocess.Popen(ffmpeg_cmd2)
+                proc.communicate()
+
             else:
                 print(_('Not found the green area to leave !'))
 
@@ -98,7 +134,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         filename = sys.argv[1]
         post = Postprocess(filename)
-        post.mkvmerge()
+        post.remux()
         sys.exit()
     else:
         print(_('You must specify the full path to the video file!'))

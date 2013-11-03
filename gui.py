@@ -330,6 +330,7 @@ class Gui:
         if self.edl.edlname and self.edl.edl:
             try:
                 self.edl.save_edl(self.edl.edlname)
+                self.edl.imported_edl = self.edl.edl  # aktualizuj stav importu
                 self.gprint(_('EDL file was saved to: ') + self.edl.edlname)
             except Exception as er:
                 self.gprint(_('EDL could not be saved to: ') +
